@@ -29,7 +29,7 @@ FIRMWARE_RADIO_IMAGES := \
     modem_f1.b26 modem_f1.b29 modem_f1.mdt modem.b00 modem.b01 modem.b02 modem.b03 \
     modem.b04 modem.b05 modem.b06 modem.b07 modem.b08 modem.b09 modem.b10 modem.mdt
 
-FIRMWARE_RADIO_SYMLINKS := $(addprefix $(TARGET_OUT_VENDOR)/firmware/,$(notdir $(FIRMWARE_RADIO_IMAGES)))
+FIRMWARE_RADIO_SYMLINKS := $(addprefix $(TARGET_OUT_ETC)/firmware/, $(notdir $(FIRMWARE_RADIO_IMAGES)))
 $(FIRMWARE_RADIO_SYMLINKS): $(LOCAL_INSTALLED_MODULE)
 	@echo "Modem Firmware link: $@"
 	@mkdir -p $(dir $@)
@@ -42,7 +42,7 @@ ALL_DEFAULT_INSTALLED_MODULES += $(FIRMWARE_RADIO_SYMLINKS)
 FIRMWARE_Q6_IMAGES := \
     q6.b00 q6.b01 q6.b03 q6.b04 q6.b05 q6.b06 q6.mdt
 
-FIRMWARE_Q6_SYMLINKS := $(addprefix $(TARGET_OUT_VENDOR)/firmware/,$(notdir $(FIRMWARE_Q6_IMAGES)))
+FIRMWARE_Q6_SYMLINKS := $(addprefix $(TARGET_OUT_ETC)/firmware/, $(notdir $(FIRMWARE_Q6_IMAGES)))
 $(FIRMWARE_Q6_SYMLINKS): $(LOCAL_INSTALLED_MODULE)
 	@echo "Q6 Firmware link: $@"
 	@mkdir -p $(dir $@)
