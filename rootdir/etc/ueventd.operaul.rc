@@ -65,8 +65,8 @@
 /sys/devices/platform/htc_battery/power_supply/battery              navigation                0220  system     system
 /sys/devices/platform/htc_battery/power_supply/battery              network_search            0220  radio      radio
 /sys/devices/platform/htc_battery/power_supply/battery              phone_call                0220  radio      radio
-/sys/devices/platform/mystul_rfkill/rfkill/rfkill0                      state                     0660  bluetooth  bluetooth
-/sys/devices/platform/mystul_rfkill/rfkill/rfkill0                      type                      0660  bluetooth  bluetooth
+/sys/devices/platform/operaul_rfkill/rfkill/rfkill0                      state                     0660  bluetooth  bluetooth
+/sys/devices/platform/operaul_rfkill/rfkill/rfkill0                      type                      0660  bluetooth  bluetooth
 /sys/devices/platform/msm_sdcc.*                                    polling                   0664  system     system
 /sys/devices/platform/msm_serial_hs.0                               clock                     0660  bluetooth  bluetooth
 /sys/devices/platform/msm_ssbi.0/pm8038-core/pm8xxx-led/leds/amber  blink                     0664  system     system
