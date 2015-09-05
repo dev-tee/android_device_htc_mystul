@@ -94,6 +94,10 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     gps.msm8960
 
+# Lights
+PRODUCT_PACKAGES += \
+    lights.operaul
+
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/gps/gps.conf:system/etc/gps.conf
 
