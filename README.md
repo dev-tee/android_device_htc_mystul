@@ -1,3 +1,3 @@
-Copyright 2013 - The CyanogenMod Project
+Copyright 2015 - The CyanogenMod Project
 
-Device configuration for the HTC One Mini.
+Device configuration for the HTC First.
