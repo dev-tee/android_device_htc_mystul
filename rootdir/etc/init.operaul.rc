@@ -160,6 +160,10 @@ on boot
     # Set volume key wake up attribute file permission
     chown media media /sys/keyboard/vol_wakeup
 
+    # Extra button-backlight%d permissions
+    chown system system /sys/class/leds/button-backlight1/brightness
+    chown system system /sys/class/leds/button-backlight2/brightness
+
 # Services start here
 service dhcpcd_bt-pan /system/bin/dhcpcd -BKLG
     disabled
