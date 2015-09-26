@@ -43,9 +43,6 @@ char const*const GREEN_LED_FILE = "/sys/class/leds/green/brightness";
 char const*const BUTTON_FILE = "/sys/class/leds/button-backlight/brightness";
 char const*const BUTTON_FILE1 = "/sys/class/leds/button-backlight1/brightness";
 char const*const BUTTON_FILE2 = "/sys/class/leds/button-backlight2/brightness";
-char const*const BUTTON_CURRENTS_FILE = "/sys/class/leds/button-backlight/currents";
-char const*const BUTTON1_CURRENTS_FILE = "/sys/class/leds/button-backlight1/currents";
-char const*const BUTTON2_CURRENTS_FILE = "/sys/class/leds/button-backlight2/currents";
 
 char const*const AMBER_BLINK_FILE = "/sys/class/leds/amber/blink";
 char const*const GREEN_BLINK_FILE = "/sys/class/leds/green/blink";
@@ -230,9 +227,6 @@ static int set_light_buttons(struct light_device_t* dev,
   err = write_int(BUTTON_FILE, brightness);
   err = write_int(BUTTON_FILE1, brightness);
   err = write_int(BUTTON_FILE2, brightness);
-  err = write_int(BUTTON_CURRENTS_FILE, (brightness / 25));
-  err = write_int(BUTTON1_CURRENTS_FILE, (brightness / 25));
-  err = write_int(BUTTON2_CURRENTS_FILE, (brightness / 25));
   pthread_mutex_unlock(&g_lock);
 
   return 0;
