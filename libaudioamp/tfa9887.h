@@ -15,14 +15,11 @@
  */
 
 #define TFA9887_DEVICE "/dev/tfa9887"
-#define TFA9887L_DEVICE "/dev/tfa9887l"
 
 #define TPA9887_IOCTL_MAGIC 'a'
 #define TPA9887_WRITE_CONFIG	_IOW(TPA9887_IOCTL_MAGIC, 0x01, unsigned int)
 #define TPA9887_READ_CONFIG	_IOW(TPA9887_IOCTL_MAGIC, 0x02, unsigned int)
 #define TPA9887_ENABLE_DSP	_IOW(TPA9887_IOCTL_MAGIC, 0x03, unsigned int)
-#define TPA9887_WRITE_L_CONFIG	_IOW(TPA9887_IOCTL_MAGIC, 0x04, unsigned int)
-#define TPA9887_READ_L_CONFIG	_IOW(TPA9887_IOCTL_MAGIC, 0x05, unsigned int)
 #define TPA9887_KERNEL_LOCK	_IOW(TPA9887_IOCTL_MAGIC, 0x06, unsigned int)
 
 #define TFA9887_DEFAULT_RATE 48000
@@ -31,30 +28,19 @@
 #define MAX_PARAM_SIZE 768
 
 #define PATCH_R "/system/etc/tfa/tfa9887.patch"
-#define PATCH_L "/system/etc/tfa/tfa9887_l.patch"
 #define SPKR_R "/system/etc/tfa/deftcoefA.speaker"
-#define SPKR_L "/system/etc/tfa/deftcoefA_l.speaker"
 
 #define CONFIG_PLAYBACK_R "/system/etc/tfa/playback.config"
-#define CONFIG_PLAYBACK_L "/system/etc/tfa/playback_l.config"
 #define CONFIG_RING_R "/system/etc/tfa/ring.config"
-#define CONFIG_RING_L "/system/etc/tfa/ring_l.config"
 #define CONFIG_VOICE_R "/system/etc/tfa/voice.config"
-#define CONFIG_VOICE_L "/system/etc/tfa/voice_l.config"
 
 #define PRESET_PLAYBACK_R "/system/etc/tfa/playback.preset"
-#define PRESET_PLAYBACK_L "/system/etc/tfa/playback_l.preset"
 #define PRESET_RING_R "/system/etc/tfa/ring.preset"
-#define PRESET_RING_L "/system/etc/tfa/ring_l.preset"
 #define PRESET_VOICE_R "/system/etc/tfa/voice.preset"
-#define PRESET_VOICE_L "/system/etc/tfa/voice_l.preset"
 
 #define EQ_PLAYBACK_R "/system/etc/tfa/playback.eq"
-#define EQ_PLAYBACK_L "/system/etc/tfa/playback_l.eq"
 #define EQ_RING_R "/system/etc/tfa/ring.eq"
-#define EQ_RING_L "/system/etc/tfa/ring_l.eq"
 #define EQ_VOICE_R "/system/etc/tfa/voice.eq"
-#define EQ_VOICE_L "/system/etc/tfa/voice_l.eq"
 
 struct mode_config {
     const char *config;
@@ -84,24 +70,6 @@ const struct mode_config Tfa9887_Right_Mode_Configs[Tfa9887_Num_Modes] = {
         .config = CONFIG_VOICE_R,
         .preset = PRESET_VOICE_R,
         .eq = EQ_VOICE_R
-    }
-};
-
-const struct mode_config Tfa9887_Left_Mode_Configs[Tfa9887_Num_Modes] = {
-    {   /* Playback */
-        .config = CONFIG_PLAYBACK_L,
-        .preset = PRESET_PLAYBACK_L,
-        .eq = EQ_PLAYBACK_L,
-    },
-    {   /* Ring */
-        .config = CONFIG_RING_L,
-        .preset = PRESET_RING_L,
-        .eq = EQ_RING_L
-    },
-    {   /* Voice */
-        .config = CONFIG_VOICE_L,
-        .preset = PRESET_VOICE_L,
-        .eq = EQ_VOICE_L
     }
 };
 

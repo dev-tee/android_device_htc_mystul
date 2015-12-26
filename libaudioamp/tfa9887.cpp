@@ -32,7 +32,6 @@
 /* Module variables */
 
 static bool tfa9887_initialized = false;
-static bool tfa9887l_initialized = false;
 static Tfa9887_Mode_t tfa9887_mode = Tfa9887_Num_Modes;
 
 /* Helper functions */
@@ -706,8 +705,7 @@ static int tfa9887_startup(int fd) {
     return error;
 }
 
-static int tfa9887_init(int fd, int sample_rate,
-        bool is_right) {
+static int tfa9887_init(int fd, int sample_rate) {
     int error;
     const char *patch_file, *speaker_file;
     uint8_t patch_data[MAX_PATCH_SIZE];
@@ -715,15 +713,9 @@ static int tfa9887_init(int fd, int sample_rate,
     int channel;
     unsigned int pll_lock_bits = (TFA9887_STATUS_CLKS | TFA9887_STATUS_PLLS);
 
-    if (is_right) {
-        channel = 1;
-        patch_file = PATCH_R;
-        speaker_file = SPKR_R;
-    } else {
-        channel = 0;
-        patch_file = PATCH_L;
-        speaker_file = SPKR_L;
-    }
+    channel = 1;
+    patch_file = PATCH_R;
+    speaker_file = SPKR_R;
 
     /* must wait until chip is ready otherwise no init happens */
     error = tfa9887_wait_ready(fd, TFA9887_STATUS_MTPB, 0);
@@ -792,17 +784,12 @@ priv_init_err:
     return error;
 }
 
-static int tfa9887_set_dsp_mode(int fd, Tfa9887_Mode_t mode, bool is_right) {
+static int tfa9887_set_dsp_mode(int fd, Tfa9887_Mode_t mode) {
     int error;
     const struct mode_config *config;
 
-    if (is_right) {
-        config = Tfa9887_Right_Mode_Configs;
-        ALOGV("Setting right mode to %d", mode);
-    } else {
-        config = Tfa9887_Left_Mode_Configs;
-        ALOGV("Setting left mode to %d", mode);
-    }
+    config = Tfa9887_Right_Mode_Configs;
+    ALOGV("Setting right mode to %d", mode);
 
     error = tfa9887_load_dsp(fd, config[mode].config);
     if (error != 0) {
@@ -855,7 +842,6 @@ static Tfa9887_Mode_t tfa9887_get_mode(audio_mode_t mode) {
 int tfa9887_set_mode(audio_mode_t mode) {
     unsigned int reg_value[2];
     int tfa9887_fd;
-    int tfa9887l_fd;
     int ret = -1;
     Tfa9887_Mode_t dsp_mode;
 
@@ -866,10 +852,6 @@ int tfa9887_set_mode(audio_mode_t mode) {
         ALOGE("error opening amplifier device %s", TFA9887_DEVICE);
         return -1;
     }
-    if ((tfa9887l_fd = open(TFA9887L_DEVICE, O_RDWR)) < 0) {
-        ALOGE("error opening amplifier device %s", TFA9887L_DEVICE);
-        return -1;
-    }
 
     /* Lock TFA9887 kernel driver */
     reg_value[0] = 1;
@@ -878,46 +860,28 @@ int tfa9887_set_mode(audio_mode_t mode) {
         ALOGE("ioctl %d failed. ret = %d", TPA9887_ENABLE_DSP, ret);
         goto set_mode_unlock;
     }
-    if ((ret = ioctl(tfa9887l_fd, TPA9887_KERNEL_LOCK, &reg_value)) != 0) {
-        ALOGE("ioctl %d failed. ret = %d", TPA9887_ENABLE_DSP, ret);
-        goto set_mode_unlock;
-    }
 
-    if (tfa9887_initialized && tfa9887l_initialized &&
-            dsp_mode == tfa9887_mode) {
+    if (tfa9887_initialized && dsp_mode == tfa9887_mode) {
         ALOGI("No mode change needed, already mode %d", dsp_mode);
         goto set_mode_unlock;
     }
 
     /* Mute to avoid pop */
     ret = tfa9887_mute(tfa9887_fd, Tfa9887_Mute_Digital);
-    ret = tfa9887_mute(tfa9887l_fd, Tfa9887_Mute_Digital);
 
     /* Initialize if necessary */
     if (!tfa9887_initialized) {
-        ret = tfa9887_init(tfa9887_fd, TFA9887_DEFAULT_RATE, true);
+        ret = tfa9887_init(tfa9887_fd, TFA9887_DEFAULT_RATE);
         if (ret != 0) {
             ALOGE("Failed to initialize tfa9887R, DSP not enabled");
             goto set_mode_unmute;
         }
     }
-    if (!tfa9887l_initialized) {
-        ret = tfa9887_init(tfa9887l_fd, TFA9887_DEFAULT_RATE, false);
-        if (ret != 0) {
-            ALOGE("Failed to initialize tfa9887L, DSP not enabled");
-            goto set_mode_unmute;
-        }
-    }
 
     /* Set DSP mode */
-    ret = tfa9887_set_dsp_mode(tfa9887_fd, dsp_mode, true);
+    ret = tfa9887_set_dsp_mode(tfa9887_fd, dsp_mode);
     if (ret != 0) {
         ALOGE("Failed to set TFA9887R DSP mode: %d", ret);
-        goto set_mode_unmute;
-    }
-    ret = tfa9887_set_dsp_mode(tfa9887l_fd, dsp_mode, false);
-    if (ret != 0) {
-        ALOGE("Failed to set TFA9887L DSP mode: %d", ret);
         goto set_mode_unmute;
     }
 
@@ -934,31 +898,18 @@ int tfa9887_set_mode(audio_mode_t mode) {
         }
         tfa9887_initialized = true;
     }
-    if (!tfa9887l_initialized) {
-        if ((ret = ioctl(tfa9887l_fd, TPA9887_ENABLE_DSP, &reg_value)) != 0) {
-            ALOGE("ioctl %d failed. ret = %d", TPA9887_ENABLE_DSP, ret);
-            goto set_mode_unmute;
-        }
-        tfa9887l_initialized = true;
-    }
 
 set_mode_unmute:
     ret = tfa9887_mute(tfa9887_fd, Tfa9887_Mute_Off);
-    ret = tfa9887_mute(tfa9887l_fd, Tfa9887_Mute_Off);
 
 set_mode_unlock:
     /* Unlock TFA9887 kernel driver */
     reg_value[0] = 1;
     reg_value[1] = 0;
-    if ((ret = ioctl(tfa9887_fd, TPA9887_KERNEL_LOCK, &reg_value)) != 0) {
+    if ((ret = ioctl(tfa9887_fd, TPA9887_KERNEL_LOCK, &reg_value)) != 0)
         ALOGE("ioctl %d failed. ret = %d", TPA9887_ENABLE_DSP, ret);
-    }
-    if ((ret = ioctl(tfa9887l_fd, TPA9887_KERNEL_LOCK, &reg_value)) != 0) {
-        ALOGE("ioctl %d failed. ret = %d", TPA9887_ENABLE_DSP, ret);
-    }
 
     close(tfa9887_fd);
-    close(tfa9887l_fd);
 
     return ret;
 }
