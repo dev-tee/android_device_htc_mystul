@@ -14,5 +14,11 @@ ro.telephony.default_network=9
 mobiledata.interfaces=rmnet0,rmnet1
 telephony.lteOnGsmDevice=1
 
+# NFC
+debug.nfc.fw_download=true
+debug.nfc.fw_boot_download=false
+debug.nfc.se=true
+ro.nfc.port=I2C
+
 ro.cwm.forbid_format=/firmware_radio,/firmware_q6,/devlog
 ro.cwm.forbid_mount=/firmware_radio,/firmware_q6,/devlog
