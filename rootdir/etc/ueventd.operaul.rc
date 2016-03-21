@@ -90,3 +90,6 @@
 /sys/devices/virtual/optical_sensors/proximity                      ps_kadc                   0660  radio      radio
 /sys/devices/virtual/smdpkt/smdcntl*                                open_timeout              0664  radio      radio
 /sys/devices/virtual/timed_output/vibrator                          voltage_level             0664  system     system
+
+# NFC
+/dev/pn544	0600	nfc	nfc
