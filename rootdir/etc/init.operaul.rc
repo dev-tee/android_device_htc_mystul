@@ -160,6 +160,16 @@ on boot
     # Set volume key wake up attribute file permission
     chown media media /sys/keyboard/vol_wakeup
 
+# HTC SSD Battery - BEGIN
+# for RIL to notify battery driver talking and network_search state
+    chown radio radio /sys/class/power_supply/battery/phone_call
+    chmod 0220 /sys/class/power_supply/battery/phone_call
+    chown radio radio /sys/class/power_supply/battery/network_search
+    chmod 0220 /sys/class/power_supply/battery/network_search
+    chown system system /sys/class/power_supply/battery/navigation
+    chmod 0220 /sys/class/power_supply/battery/navigation
+# HTC SSD Battery - END
+
     # Extra button-backlight%d permissions
     chown system system /sys/class/leds/button-backlight1/brightness
     chown system system /sys/class/leds/button-backlight2/brightness
