@@ -146,6 +146,14 @@ static char *camera_fixup_setparams(int id, const char *settings)
     /* Disable denoise */
     params.set(android::CameraParameters::KEY_SUPPORTED_DENOISE, "off");
 
+#ifdef CAMERA_5MP
+    /* limit picture size to 5MP regardless of reported picture size values */
+    int pwidth, pheight;
+    params.getPictureSize(&pwidth,&pheight);
+    if (pwidth > 2560 || pheight > 1920)
+        params.setPictureSize(2560,1920);
+#endif
+
 #if !LOG_NDEBUG
     ALOGV("%s: fixed parameters:", __FUNCTION__);
     params.dump();
