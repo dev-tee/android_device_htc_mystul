@@ -110,6 +110,9 @@ static char *camera_fixup_getparams(int id, const char *settings)
     /* Disable denoise */
     params.set(android::CameraParameters::KEY_SUPPORTED_DENOISE, "off");
 
+    /* Enable ZSL  */
+    params.set(android::CameraParameters::KEY_ZSL,"on");
+
 #ifdef CAMERA_FRONT_VGA
     if (id == CAMERA_FACING_FRONT) {
         params.set(android::CameraParameters::KEY_SUPPORTED_PREVIEW_SIZES,
@@ -145,6 +148,9 @@ static char *camera_fixup_setparams(int id, const char *settings)
 
     /* Disable denoise */
     params.set(android::CameraParameters::KEY_SUPPORTED_DENOISE, "off");
+
+    /* Enable ZSL */
+    params.set(android::CameraParameters::KEY_ZSL,"on");
 
 #ifdef CAMERA_5MP
     /* limit picture size to 5MP regardless of reported picture size values */
