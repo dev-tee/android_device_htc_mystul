@@ -1,7 +1,5 @@
 $(call inherit-product, device/htc/mystul/full_mystul.mk)
 
-$(call inherit-product, vendor/cm/config/gsm.mk)
-
 PRODUCT_RELEASE_NAME := mystul
 
 # Inherit some common CM stuff.
