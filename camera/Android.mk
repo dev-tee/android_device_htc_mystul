@@ -1,6 +1,7 @@
 LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
+LOCAL_C_INCLUDES += system/media/camera/include
 LOCAL_SRC_FILES := \
     CameraWrapper.cpp
 
@@ -15,7 +16,7 @@ ifeq ($(TARGET_BOOTLOADER_BOARD_NAME),mystul)
 LOCAL_CFLAGS += -DCAMERA_5MP
 endif
 
-LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)/hw
+LOCAL_MODULE_RELATIVE_PATH := hw
 LOCAL_MODULE := camera.$(TARGET_BOARD_PLATFORM)
 LOCAL_MODULE_TAGS := optional
 
