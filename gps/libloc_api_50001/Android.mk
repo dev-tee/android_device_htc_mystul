@@ -86,7 +86,7 @@ LOCAL_CFLAGS += \
 
 LOCAL_C_INCLUDES:= \
     $(TARGET_OUT_HEADERS)/gps.utils \
-    device/htc/mystul/gps/ulp/inc
+    device/htc/s4-common/gps/ulp/inc
 
 LOCAL_PRELINK_MODULE := false
 
@@ -94,7 +94,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
 
-LOCAL_MODULE := gps.msm8960
+LOCAL_MODULE := gps.$(TARGET_BOARD_PLATFORM)
 
 LOCAL_MODULE_TAGS := optional
 
@@ -118,10 +118,10 @@ LOCAL_CFLAGS += \
 ## Includes
 LOCAL_C_INCLUDES:= \
     $(TARGET_OUT_HEADERS)/gps.utils \
-    device/htc/mystul/gps/ulp/inc
+    device/htc/s4-common/gps/ulp/inc
 
 LOCAL_PRELINK_MODULE := false
-LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)/hw
+LOCAL_MODULE_RELATIVE_PATH := hw
 
 include $(BUILD_SHARED_LIBRARY)
 

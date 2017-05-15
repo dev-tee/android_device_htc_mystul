@@ -343,11 +343,6 @@ static int loc_eng_reinit(loc_eng_data_s_type &loc_eng_data)
         msg_q_snd((void*)((LocEngContext*)(loc_eng_data.context))->deferred_q,
                   supl_msg, loc_eng_free_msg);
 
-        loc_eng_msg_lpp_config *lpp_msg(new loc_eng_msg_lpp_config(&loc_eng_data,
-                                                                          gps_conf.LPP_PROFILE));
-        msg_q_snd((void*)((LocEngContext*)(loc_eng_data.context))->deferred_q,
-                  lpp_msg, loc_eng_free_msg);
-
         loc_eng_msg_sensor_control_config *sensor_control_config_msg(
             new loc_eng_msg_sensor_control_config(&loc_eng_data, gps_conf.SENSOR_USAGE));
         msg_q_snd((void*)((LocEngContext*)(loc_eng_data.context))->deferred_q,
@@ -431,7 +426,7 @@ void loc_eng_cleanup(loc_eng_data_s_type &loc_eng_data)
         loc_eng_data.internet_nif = NULL;
     }
 #endif
-    if (loc_eng_data.client_handle->isInSession())
+    if (loc_eng_data.navigating)
     {
         LOC_LOGD("loc_eng_cleanup: fix not stopped. stop it now.");
         loc_eng_stop(loc_eng_data);
@@ -516,14 +511,13 @@ static int loc_eng_start_handler(loc_eng_data_s_type &loc_eng_data)
    ENTRY_LOG();
    int ret_val = LOC_API_ADAPTER_ERR_SUCCESS;
 
-   if (!loc_eng_data.client_handle->isInSession()) {
+   if (!loc_eng_data.navigating) {
        ret_val = loc_eng_data.client_handle->startFix();
 
        if (ret_val == LOC_API_ADAPTER_ERR_SUCCESS ||
            ret_val == LOC_API_ADAPTER_ERR_ENGINE_DOWN)
        {
-           loc_eng_data.client_handle->setInSession(TRUE);
-           loc_inform_gps_status(loc_eng_data, GPS_STATUS_SESSION_BEGIN);
+           loc_eng_data.navigating = TRUE;
        }
    }
 
@@ -574,15 +568,16 @@ static int loc_eng_stop_handler(loc_eng_data_s_type &loc_eng_data)
    ENTRY_LOG();
    int ret_val = LOC_API_ADAPTER_ERR_SUCCESS;
 
-   if (loc_eng_data.client_handle->isInSession()) {
+   if (loc_eng_data.navigating) {
 
        ret_val = loc_eng_data.client_handle->stopFix();
-       if (ret_val == LOC_API_ADAPTER_ERR_SUCCESS)
+       if (ret_val == LOC_API_ADAPTER_ERR_SUCCESS &&
+           loc_eng_data.fix_session_status != GPS_STATUS_SESSION_BEGIN)
        {
            loc_inform_gps_status(loc_eng_data, GPS_STATUS_SESSION_END);
        }
 
-       loc_eng_data.client_handle->setInSession(FALSE);
+       loc_eng_data.navigating = FALSE;
    }
 
     EXIT_LOG(%d, ret_val);
@@ -774,6 +769,14 @@ static void loc_inform_gps_status(loc_eng_data_s_type &loc_eng_data, GpsStatusVa
     {
         CALLBACK_LOG_CALLFLOW("status_cb", %s, loc_get_gps_status_name(gs.status));
         loc_eng_data.status_cb(&gs);
+
+        // Restore session begin if needed
+        if (status == GPS_STATUS_ENGINE_ON && last_status == GPS_STATUS_SESSION_BEGIN)
+        {
+            GpsStatus gs_sess_begin = { sizeof(gs_sess_begin),GPS_STATUS_SESSION_BEGIN };
+            CALLBACK_LOG_CALLFLOW("status_cb", %s, loc_get_gps_status_name(gs_sess_begin.status));
+            loc_eng_data.status_cb(&gs_sess_begin);
+        }
     }
 
     last_status = status;
@@ -887,7 +890,7 @@ SIDE EFFECTS
 
 ===========================================================================*/
 int loc_eng_agps_open(loc_eng_data_s_type &loc_eng_data, AGpsType agpsType,
-                     const char* apn, AGpsBearerType bearerType)
+                     const char* apn, ApnIpType bearerType)
 {
     ENTRY_LOG_CALLFLOW();
     INIT_CHECK(loc_eng_data.context && loc_eng_data.agps_status_cb,
@@ -1201,10 +1204,9 @@ static void loc_eng_report_status (loc_eng_data_s_type &loc_eng_data, GpsStatusV
     }
 
     // Session End is not reported during Android navigating state
-    boolean navigating = loc_eng_data.client_handle->isInSession();
     if (status != GPS_STATUS_NONE &&
-        !(status == GPS_STATUS_SESSION_END && navigating) &&
-        !(status == GPS_STATUS_SESSION_BEGIN && !navigating))
+        !(status == GPS_STATUS_SESSION_END && loc_eng_data.navigating) &&
+        !(status == GPS_STATUS_SESSION_BEGIN && !loc_eng_data.navigating))
     {
         if (loc_eng_data.mute_session_state != LOC_MUTE_SESS_IN_SESSION)
         {
@@ -1272,10 +1274,9 @@ void loc_eng_handle_engine_up(loc_eng_data_s_type &loc_eng_data)
     loc_eng_report_status(loc_eng_data, GPS_STATUS_ENGINE_ON);
 
     // modem is back up.  If we crashed in the middle of navigating, we restart.
-    if (loc_eng_data.client_handle->isInSession()) {
+    if (loc_eng_data.navigating) {
         // This sets the copy in adapter to modem
         loc_eng_data.client_handle->setPositionMode(NULL);
-        loc_eng_data.client_handle->setInSession(false);
         loc_eng_start_handler(loc_eng_data);
     }
     EXIT_LOG(%s, VOID_RET);
@@ -1415,13 +1416,6 @@ static void loc_eng_deferred_action_thread(void* arg)
         }
         break;
 
-        case LOC_ENG_MSG_LPP_CONFIG:
-        {
-            loc_eng_msg_lpp_config *svMsg = (loc_eng_msg_lpp_config*)msg;
-            loc_eng_data_p->client_handle->setLPPConfig(svMsg->lpp_config);
-        }
-        break;
-
         case LOC_ENG_MSG_SET_SENSOR_CONTROL_CONFIG:
         {
             loc_eng_msg_sensor_control_config *sccMsg = (loc_eng_msg_sensor_control_config*)msg;
@@ -1432,16 +1426,7 @@ static void loc_eng_deferred_action_thread(void* arg)
         case LOC_ENG_MSG_SET_SENSOR_PROPERTIES:
         {
             loc_eng_msg_sensor_properties *spMsg = (loc_eng_msg_sensor_properties*)msg;
-            loc_eng_data_p->client_handle->setSensorProperties(spMsg->gyroBiasVarianceRandomWalk_valid,
-                                                               spMsg->gyroBiasVarianceRandomWalk,
-                                                               spMsg->accelRandomWalk_valid,
-                                                               spMsg->accelRandomWalk,
-                                                               spMsg->angleRandomWalk_valid,
-                                                               spMsg->angleRandomWalk,
-                                                               spMsg->rateRandomWalk_valid,
-                                                               spMsg->rateRandomWalk,
-                                                               spMsg->velocityRandomWalk_valid,
-                                                               spMsg->velocityRandomWalk);
+            loc_eng_data_p->client_handle->setSensorProperties(spMsg->gyroBiasVarianceRandomWalk);
         }
         break;
 
@@ -1449,10 +1434,7 @@ static void loc_eng_deferred_action_thread(void* arg)
         {
             loc_eng_msg_sensor_perf_control_config *spccMsg = (loc_eng_msg_sensor_perf_control_config*)msg;
             loc_eng_data_p->client_handle->setSensorPerfControlConfig(spccMsg->controlMode, spccMsg->accelSamplesPerBatch, spccMsg->accelBatchesPerSec,
-                                                                      spccMsg->gyroSamplesPerBatch, spccMsg->gyroBatchesPerSec,
-                                                                      spccMsg->accelSamplesPerBatchHigh, spccMsg->accelBatchesPerSecHigh,
-                                                                      spccMsg->gyroSamplesPerBatchHigh, spccMsg->gyroBatchesPerSecHigh,
-                                                                      spccMsg->algorithmConfig);
+                                                                      spccMsg->gyroSamplesPerBatch, spccMsg->gyroBatchesPerSec);
         }
         break;
 
@@ -1466,53 +1448,28 @@ static void loc_eng_deferred_action_thread(void* arg)
         case LOC_ENG_MSG_REPORT_POSITION:
             if (loc_eng_data_p->mute_session_state != LOC_MUTE_SESS_IN_SESSION)
             {
-                bool reported = false;
                 loc_eng_msg_report_position *rpMsg = (loc_eng_msg_report_position*)msg;
                 if (loc_eng_data_p->location_cb != NULL) {
                     if (LOC_SESS_FAILURE == rpMsg->status) {
                         // in case we want to handle the failure case
                         loc_eng_data_p->location_cb(NULL, NULL);
-                        reported = true;
                     }
                     // what's in the else if is... (line by line)
                     // 1. this is a good fix; or
-                    //   1.1 there is source info; or
-                    //   1.1.1 this is from hybrid provider;
-                    //   1.2 it is a Satellite fix; or
-                    //   1.2.1 it is a sensor fix
                     // 2. (must be intermediate fix... implicit)
                     //   2.1 we accepte intermediate; and
                     //   2.2 it is NOT the case that
                     //   2.2.1 there is inaccuracy; and
                     //   2.2.2 we care about inaccuracy; and
                     //   2.2.3 the inaccuracy exceeds our tolerance
-                    else if ((LOC_SESS_SUCCESS == rpMsg->status &&
-                              (((LOCATION_HAS_SOURCE_INFO & rpMsg->location.flags) &&
-                                ULP_LOCATION_IS_FROM_HYBRID == rpMsg->location.position_source) ||
-                               ((LOC_POS_TECH_MASK_SATELLITE & rpMsg->technology_mask) ||
-                                (LOC_POS_TECH_MASK_SENSORS & rpMsg->technology_mask)))) ||
+                    else if (LOC_SESS_SUCCESS == rpMsg->status ||
                              (LOC_SESS_INTERMEDIATE == loc_eng_data_p->intermediateFix &&
                               !((rpMsg->location.flags & GPS_LOCATION_HAS_ACCURACY) &&
                                 (gps_conf.ACCURACY_THRES != 0) &&
                                 (rpMsg->location.accuracy > gps_conf.ACCURACY_THRES)))) {
                         loc_eng_data_p->location_cb((GpsLocation*)&(rpMsg->location),
                                                     (void*)rpMsg->locationExt);
-                        reported = true;
                     }
-                }
-
-                // if we have reported this fix
-                if (reported &&
-                    // and if this is a singleshot
-                    GPS_POSITION_RECURRENCE_SINGLE ==
-                    loc_eng_data_p->client_handle->getPositionMode().recurrence) {
-                    if (LOC_SESS_INTERMEDIATE == rpMsg->status) {
-                        // modem could be still working for a final fix,
-                        // although we no longer need it.  So stopFix().
-                        loc_eng_data_p->client_handle->stopFix();
-                    }
-                    // turn off the session flag.
-                    loc_eng_data_p->client_handle->setInSession(false);
                 }
 
                 // Free the allocated memory for rawData

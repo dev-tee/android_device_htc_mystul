@@ -319,26 +319,15 @@ struct loc_eng_msg_report_position : public loc_eng_msg {
     const GpsLocation location;
     const void* locationExt;
     const enum loc_sess_status status;
-    const LocPosTechMask technology_mask;
     inline loc_eng_msg_report_position(void* instance, GpsLocation &loc, void* locExt,
                                        enum loc_sess_status st) :
         loc_eng_msg(instance, LOC_ENG_MSG_REPORT_POSITION),
-        location(loc), locationExt(locExt), status(st), technology_mask(LOC_POS_TECH_MASK_DEFAULT)
+        location(loc), locationExt(locExt), status(st)
     {
-        LOC_LOGV("flags: %d\n  source: %d\n  latitude: %f\n  longitude: %f\n  altitude: %f\n  speed: %f\n  bearing: %f\n  accuracy: %f\n  timestamp: %lld\n  rawDataSize: %d\n  rawData: %p\n  Session status: %d\n Technology mask: %u",
+        LOC_LOGV("flags: %d\n  source: %d\n  latitude: %f\n  longitude: %f\n  altitude: %f\n  speed: %f\n  bearing: %f\n  accuracy: %f\n  timestamp: %lld\n  rawDataSize: %d\n  rawData: %p\n  Session status: %d",
                  location.flags, location.position_source, location.latitude, location.longitude,
                  location.altitude, location.speed, location.bearing, location.accuracy,
-                 location.timestamp, location.rawDataSize, location.rawData,status,technology_mask);
-    }
-    inline loc_eng_msg_report_position(void* instance, GpsLocation &loc, void* locExt,
-                                       enum loc_sess_status st, LocPosTechMask technology) :
-        loc_eng_msg(instance, LOC_ENG_MSG_REPORT_POSITION),
-        location(loc), locationExt(locExt), status(st), technology_mask(technology)
-    {
-        LOC_LOGV("flags: %d\n  source: %d\n  latitude: %f\n  longitude: %f\n  altitude: %f\n  speed: %f\n  bearing: %f\n  accuracy: %f\n  timestamp: %lld\n  rawDataSize: %d\n  rawData: %p\n  Session status: %d\n Technology mask: %u",
-                 location.flags, location.position_source, location.latitude, location.longitude,
-                 location.altitude, location.speed, location.bearing, location.accuracy,
-                 location.timestamp, location.rawDataSize, location.rawData,status,technology_mask);
+                 location.timestamp, location.rawDataSize, location.rawData,status);
     }
 };
 
@@ -665,12 +654,12 @@ struct loc_eng_msg_atl_open_success : public loc_eng_msg {
     const AGpsStatusValue agpsType;
     const int length;
     char* const apn;
-    const AGpsBearerType bearerType;
+    const ApnIpType bearerType;
     inline loc_eng_msg_atl_open_success(void* instance,
                                         AGpsStatusValue atype,
                                         const char* name,
                                         int len,
-                                        AGpsBearerType btype) :
+                                        ApnIpType btype) :
         loc_eng_msg(instance, LOC_ENG_MSG_ATL_OPEN_SUCCESS),
         agpsType(atype), length(len),
         apn(new char[len+1]), bearerType(btype)

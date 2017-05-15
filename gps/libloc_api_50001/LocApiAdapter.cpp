@@ -58,7 +58,7 @@ LocEng::LocEng(void* caller,
 }
 
 LocApiAdapter::LocApiAdapter(LocEng &locEng) :
-    locEngHandle(locEng), fixCriteria(), navigating(false)
+    locEngHandle(locEng), fixCriteria()
 {
     LOC_LOGD("LocApiAdapter created");
 }
@@ -146,14 +146,12 @@ int LocApiAdapter::decodeAddress(char *addr_string, int string_size,
 
 void LocApiAdapter::reportPosition(GpsLocation &location,
                                    void* locationExt,
-                                   enum loc_sess_status status,
-                                   LocPosTechMask loc_technology_mask )
+                                   enum loc_sess_status status)
 {
     loc_eng_msg_report_position *msg(new loc_eng_msg_report_position(locEngHandle.owner,
                                                                      location,
                                                                      locationExt,
-                                                                     status,
-                                                                     loc_technology_mask));
+                                                                     status));
     if (locEngHandle.sendUlpMsg) {
         locEngHandle.sendUlpMsg(locEngHandle.owner, msg);
     } else {
