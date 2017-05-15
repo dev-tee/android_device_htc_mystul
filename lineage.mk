@@ -10,7 +10,7 @@ $(call inherit-product, device/htc/mystul/device.mk)
 
 # Device naming
 PRODUCT_DEVICE := mystul
-PRODUCT_NAME := cm_mystul
+PRODUCT_NAME := lineage_mystul
 PRODUCT_BRAND := htc
 PRODUCT_MODEL := HTC First
 PRODUCT_MANUFACTURER := HTC
