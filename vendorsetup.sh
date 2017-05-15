@@ -1,2 +1,2 @@
-add_lunch_combo cm_mystul-userdebug
-add_lunch_combo cm_mystul-eng
+add_lunch_combo lineage_mystul-userdebug
+add_lunch_combo lineage_mystul-eng
