@@ -39,7 +39,7 @@ TARGET_BOARD_PLATFORM_GPU := qcom-adreno305
 # Kernel
 BOARD_KERNEL_BASE := 0x80400000
 BOARD_KERNEL_PAGESIZE := 2048
-BOARD_KERNEL_CMDLINE := console=ttyHSL0,115200,n8 androidboot.hardware=operaul
+BOARD_KERNEL_CMDLINE := console=ttyHSL0,115200,n8 androidboot.hardware=operaul androidboot.selinux=permissive
 BOARD_MKBOOTIMG_ARGS := --ramdisk_offset 0x01700000
 TARGET_KERNEL_CONFIG := opera_defconfig
 TARGET_KERNEL_SOURCE := kernel/htc/msm8960
