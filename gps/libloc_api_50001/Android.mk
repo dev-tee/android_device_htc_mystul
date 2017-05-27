@@ -86,7 +86,7 @@ LOCAL_CFLAGS += \
 
 LOCAL_C_INCLUDES:= \
     $(TARGET_OUT_HEADERS)/gps.utils \
-    device/htc/s4-common/gps/ulp/inc
+    device/htc/mystul/gps/ulp/inc
 
 LOCAL_PRELINK_MODULE := false
 
@@ -118,7 +118,7 @@ LOCAL_CFLAGS += \
 ## Includes
 LOCAL_C_INCLUDES:= \
     $(TARGET_OUT_HEADERS)/gps.utils \
-    device/htc/s4-common/gps/ulp/inc
+    device/htc/mystul/gps/ulp/inc
 
 LOCAL_PRELINK_MODULE := false
 LOCAL_MODULE_RELATIVE_PATH := hw

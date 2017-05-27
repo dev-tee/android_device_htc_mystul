@@ -121,7 +121,11 @@ PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/com.android.nfc_extras.xml:system/etc/permissions/com.android.nfc_extras.xml
  
 PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
-    persist.sys.usb.config=mtp
+    persist.sys.usb.config=mtp,adb \
+    persist.service.adb.enable=1 \
+    persist.service.debuggable=1 \
+    ro.adb.secure=0 \
+    ro.secure=0
 
 PRODUCT_PROPERTY_OVERRIDES += \
     persist.timed.enable=true \
